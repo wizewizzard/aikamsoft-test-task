@@ -1,0 +1,8 @@
+{
+  "criterias": [
+    {"lastName": "JUJU"},
+    {"productName": "product 15", "minTimes": 0},
+    {"minExpenses": 0, "maxExpenses": 0},
+    {"badCustomers": 0}
+  ]
+}

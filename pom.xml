@@ -32,6 +32,22 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/${project.build.finalName}.lib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>${maven.jar.plugin.version}</version>
         <configuration>
@@ -43,6 +59,30 @@
             </manifest>
           </archive>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <mkdir dir="${project.build.directory}/search-inputs" />
+                <mkdir dir="${project.build.directory}/stat-inputs" />
+                <copy todir="${project.build.directory}/search-inputs">
+                  <fileset dir="${basedir}/inputs/search-inputs" />
+                </copy>
+                <copy todir="${project.build.directory}/stat-inputs">
+                  <fileset dir="${basedir}/inputs/stat-inputs" />
+                </copy>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
