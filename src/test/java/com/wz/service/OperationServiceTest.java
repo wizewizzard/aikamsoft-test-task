@@ -1,23 +1,37 @@
 package com.wz.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wz.criteria.CriterionResult;
 import com.wz.criteria.customer.*;
 import com.wz.dao.CustomerDao;
 import com.wz.dao.CustomerRepository;
+import com.wz.dao.StatisticsDao;
+import com.wz.dao.StatisticsRepository;
 import com.wz.datasource.DBConnectivity;
 import com.wz.domain.Customer;
+import com.wz.dto.CriteriaReport;
+import com.wz.dto.CustomerSearchRequest;
+import com.wz.dto.StatRequest;
+import com.wz.dto.StatisticsReport;
+import com.wz.exception.InvalidInputException;
+import com.wz.statistic.CustomerStatistic;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 class OperationServiceTest {
     static DataSource dataSource;
@@ -26,11 +40,12 @@ class OperationServiceTest {
     @BeforeEach
     public void beforeEach() {
         CustomerDao customerDao = new CustomerRepository(dataSource);
-        operationService = new OperationService(customerDao);
+        StatisticsDao statisticsDao = new StatisticsRepository(dataSource);
+        operationService = new OperationService(customerDao, statisticsDao);
     }
 
     @Test
-    void shouldMakeListOfCriteriaResultsOutOfMultipleCriteria() {
+    void shouldMakeListOfCriteriaResultsOutOfMultipleCriteria() throws JsonProcessingException {
         List<CustomerSearchCriterion> criteria = new ArrayList<>();
         criteria.add(new PassiveCustomer(3));
         criteria.add(new CustomerWithLastName("Brook"));
@@ -39,9 +54,12 @@ class OperationServiceTest {
         criteria.add(new CustomerOfSpecificProduct("product 1", 3));
         criteria.add(new PassiveCustomer(5));
 
-        List<CriterionResult<Customer>> results = operationService.search(criteria);
+        CustomerSearchRequest request = new CustomerSearchRequest(criteria);
 
-        System.out.println(results);
+        CriteriaReport report = operationService.search(request);
+        List<CriterionResult<Customer>> results = report.getResults();
+        ObjectMapper mapper = new ObjectMapper();
+        System.out.println(mapper.writeValueAsString(results));
         assertThat(results).hasSize(criteria.size());
         assertThat(results).satisfiesExactly(
                 r -> {
@@ -52,8 +70,8 @@ class OperationServiceTest {
                                     c -> assertThat(c.getId()).isEqualTo(5L),
                                     c -> assertThat(c.getId()).isEqualTo(3L),
                                     c -> assertThat(c.getId()).isEqualTo(2L)
-                                    );
-                    },
+                            );
+                },
                 r -> {
                     assertThat(r.getCriterion()).isEqualTo(criteria.get(1));
                     assertThat(r.getResults())
@@ -61,7 +79,7 @@ class OperationServiceTest {
                             .satisfiesExactlyInAnyOrder(
                                     c -> assertThat(c.getId()).isEqualTo(1L),
                                     c -> assertThat(c.getId()).isEqualTo((4L))
-                                    );
+                            );
                 },
                 r -> {
                     assertThat(r.getCriterion()).isEqualTo(criteria.get(2));
@@ -94,8 +112,9 @@ class OperationServiceTest {
                                     c -> assertThat(c.getId()).isEqualTo(1L)
                             );
                 }
-                );
+        );
     }
+
 
     @BeforeAll
     public static void setUp() throws SQLException {
