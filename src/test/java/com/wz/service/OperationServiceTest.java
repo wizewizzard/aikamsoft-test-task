@@ -115,6 +115,64 @@ class OperationServiceTest {
         );
     }
 
+    @Test
+    public void shouldCorrectlyCalculateTotalDays() {
+        StatisticsReport report1 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-08-01"), LocalDate.parse("2022-08-06")));
+        StatisticsReport report2 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-08-06"), LocalDate.parse("2022-08-06")));
+        StatisticsReport report3 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-07-01"), LocalDate.parse("2022-08-06")));
+        StatisticsReport report4 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-08-05"), LocalDate.parse("2022-08-05")));
+        StatisticsReport report5 =
+                operationService.stat(new StatRequest(LocalDate.parse("2016-02-20"), LocalDate.parse("2016-03-02")));
+
+        assertThat(report1.getTotalDays()).isEqualTo(5);
+        assertThat(report2.getTotalDays()).isEqualTo(0);
+        assertThat(report3.getTotalDays()).isEqualTo(26);
+        assertThat(report4.getTotalDays()).isEqualTo(1);
+        assertThat(report5.getTotalDays()).isEqualTo(8);
+    }
+
+    @Test
+    public void shouldThrowExceptionIfDatesOverlap() {
+        Throwable t1 = catchThrowable(
+                () -> operationService.stat(new StatRequest(LocalDate.parse("2022-08-07"),
+                        LocalDate.parse("2022-08-06"))));
+
+        Throwable t2 = catchThrowable(
+                () -> operationService.stat(new StatRequest(LocalDate.parse("2022-08-06"),
+                        LocalDate.parse("2022-08-06"))));
+
+        assertThat(t1)
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("Start date cannot be later than end date");
+
+        assertThat(t2).isNull();
+    }
+
+    @Test
+    public void testReportConsistency() {
+        StatisticsReport report1 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-08-01"), LocalDate.parse("2022-08-06")));
+        StatisticsReport report2 =
+                operationService.stat(new StatRequest(LocalDate.parse("2022-08-06"), LocalDate.parse("2022-08-06")));
+
+        assertThat(report1.getCustomers())
+                .hasSize(4)
+                .isSortedAccordingTo(Comparator.comparing(CustomerStatistic::getSpentTotal).reversed());
+        assertThat(report1.getTotalDays()).isEqualTo(5);
+        assertThat(report1.getTotalExpenses()).isEqualTo(new BigDecimal(2690L));
+        assertThat(report1.getAvgExpenses()).isEqualTo(new BigDecimal("672.50"));
+
+        assertThat(report2.getCustomers())
+                .hasSize(0)
+                .isSortedAccordingTo(Comparator.comparing(CustomerStatistic::getSpentTotal).reversed());
+        assertThat(report2.getTotalDays()).isEqualTo(0);
+        assertThat(report2.getTotalExpenses()).isEqualTo(BigDecimal.ZERO);
+        assertThat(report2.getAvgExpenses()).isEqualTo(BigDecimal.ZERO);
+    }
 
     @BeforeAll
     public static void setUp() throws SQLException {
