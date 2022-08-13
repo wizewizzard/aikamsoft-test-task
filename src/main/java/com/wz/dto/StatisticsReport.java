@@ -1,5 +1,6 @@
 package com.wz.dto;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.wz.statistic.CustomerStatistic;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
+@JsonPropertyOrder({"type", "totalDays", "customers", "totalExpenses", "avgExpenses"})
 public class StatisticsReport {
     private final String type;
     private final long totalDays;

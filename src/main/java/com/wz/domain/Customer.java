@@ -1,5 +1,6 @@
 package com.wz.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Getter
@@ -9,6 +10,7 @@ import lombok.*;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
 public class Customer {
+    @JsonIgnore
     private Long id;
     @EqualsAndHashCode.Include
     private String firstName;

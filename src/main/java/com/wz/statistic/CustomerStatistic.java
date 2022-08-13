@@ -1,6 +1,7 @@
 package com.wz.statistic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonPropertyOrder({"name", "purchases"})
 public class CustomerStatistic {
     @JsonProperty("name")
     @EqualsAndHashCode.Include
