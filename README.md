@@ -29,7 +29,7 @@ Set of **stat** inputs located in `stat-inputs`:
 - `input2.json` - one last month period (with weekends excluded)
 - `input3.json` - just one day with one purchase
 - `input4.json` - `input5.json` - are inputs that trigger an error
-
+- `input6.json` - an input that results into a blank `output.json` because dates are not present in the database
 
 ## Run Locally
 

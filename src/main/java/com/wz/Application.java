@@ -80,8 +80,8 @@ public class Application {
                 throw new RuntimeException(e);
             }
         } catch (IOException exception) {
-            log.error("Error occurred when working with resources", exception);
-            throw new RuntimeException("Error occurred when working with resources");
+            log.error("Error occurred when working with files. Check if files are available.", exception);
+            throw new RuntimeException("Error occurred when working with files. Check if files are available.");
         }
     }
 }
